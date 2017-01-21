@@ -12,35 +12,50 @@ import matplotlib as mpl
 import itertools
 
 class dam():
-    def __init__(self, V, Vmax, CV, CI, overflow, R):
+    def __init__(self, V, Vmax, CV, CI, overflow, R, outflow = 0.0):
         self.V = V #current volume of water in dam
         self.Vmax = Vmax #maximum carrying capacity of dam
-        self.CV = CV
-        self.CI = CI
-        self.overflow = overflow
-        self.R = R
+        self.CV = CV #Constant for Volume Proportion term
+        self.CI = CI #Constant for inflow term
+        self.overflow = overflow #place holder to compute total overflow
+        self.R = R #for tributaries only, amount of water coming out
+        self.outflow = outflow
         
 def control(dam, vol, dt):
     #Determine outflow, assuming no over or underflow
     flowVol = dam.V*dam.CV*dt + dam.CI*vol + dam.R*dt
-    #print flowVol
     dam.V += vol
     dam.V -= flowVol
     #handle underflow
     if dam.V < 0.0:
         out = flowVol + dam.V        
         dam.V = 0.0
-        return out
+        dam.outflow = out
+        #don't cause the river to flow backwards
+        if dam.outflow > 0.0:
+            return out
+        else:
+            dam.outflow = 0.0
+            return 0.0
     else:
         #handle overflow
         if dam.V > dam.Vmax:
             out = dam.V - dam.Vmax
             dam.V = dam.Vmax
             dam.overflow += out
-            #print out
-            return out + flowVol
+            dam.outflow = out + flowVol
+            if dam.outflow > 0.0:
+                return out + flowVol
+            else:
+                dam.outflow = 0.0
+                return 0.0
         else:
-            return flowVol
+            dam.outflow = flowVol
+            if dam.outflow > 0.0:
+                return flowVol
+            else:
+                dam.outflow = 0.0
+                return 0.0
         
     
 
@@ -59,6 +74,9 @@ def extract_vol(damList):
     
 def extract_overflow(damList):
     return map(lambda x: x.overflow, damList)
+    
+def extract_outflow(damList,dt):
+    return map(lambda x: x.outflow, damList)
         
 def make_plots(times,vols):
     mpl.pyplot.plot(times,vols)
@@ -72,21 +90,26 @@ def run_simulation(damTree,dt,nSteps,damList):
     times = []
     outflows = []
     overflows = []
+    allouts = []
     for i in range(nSteps):
         vols += [extract_vol(damList)]
         times += [t]
         outflows += [step(damTree,dt)/dt]
         overflows += [extract_overflow(damList)]
+        allouts += [extract_outflow(damList,dt)]
         t += dt
     vols += [extract_vol(damList)]
     times += [t]
     overflows += [extract_overflow(damList)]
+    allouts += [extract_outflow(damList,dt)]
     mpl.pyplot.figure(0)
     make_plots(times,vols)
     mpl.pyplot.figure(1)
     mpl.pyplot.scatter(times[:-1],outflows)
     mpl.pyplot.figure(2)
     make_plots(times,overflows)
+    mpl.pyplot.figure(3)
+    make_plots(times,allouts)
     return
 
 def evaluate_overflow(damTree,dt,nSteps,damList):
@@ -98,27 +121,35 @@ def evaluate_overflow(damTree,dt,nSteps,damList):
     
 tVol = 100000000.0
 tCap = 1000000000000.0
-C1 = 0.01
-C2 = 0.9
+C1 = 10.0
+def C2(R):
+    return 1.0 - (20.0*C1)/R
 
 #Define dams with initial parameters
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
-kariba = dam(20.0, 25.0, C1, C2, 0.0, 0.0) 
+kariba = dam(19.2, 25.0, C1, C2(40.0+4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0) 
 tKariba = dam(tVol,tCap, 0.0,0.0,0.0, 40.0) 
-victoria = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+victoria = dam(19.2, 25.0, C1, C2(4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0)
 tVictoria = dam(tVol,tCap,0.0,0.0,0.0, 4.4) 
-d8 = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+d8 = dam(19.0, 25.0, C1, C2(1.04), 0.0, 0.0)
 tD8 = dam(tVol,tCap,0.0,0.0,0.0, 1.04) 
-d9 = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+d9 = dam(19.0, 25.0, C1, C2(38.0+2.2+3.6+24.0+8.7), 0.0, 0.0)
 tD9 = dam(tVol,tCap,0.0,0.0,0.0,38.0) 
-d10 = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+d10 = dam(18.0, 25.0, C1, C2(2.2), 0.0, 0.0)
 tD10 = dam(tVol,tCap,0.0,0.0,0.0,2.2) 
-d11 = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+d11 = dam(19.8, 25.0, C1, C2(3.6), 0.0, 0.0)
 tD11 = dam(tVol,tCap,0.0,0.0,0.0,3.6) 
-d12 = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+d12 = dam(17.0, 25.0, C1, C2(24.0), 0.0, 0.0)
 tD12 = dam(tVol,tCap,0.0,0.0,0.0,24.0) 
-d13 = dam(20.0, 25.0, C1, C2, 0.0, 0.0)
+
+d13 = dam(18.0, 25.0, C1, C2(8.7), 0.0, 0.0)
 tD13 = dam(tVol,tCap,0.0,0.0,0.0,8.7) 
 
 
