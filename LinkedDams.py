@@ -26,34 +26,45 @@ def control(dam, vol, t, dt):
     #Determine outflow, assuming no over or underflow
     if type(dam.R) == float:
         rate = dam.R
-        print('constant rate')
+        #print('constant rate')
     else:
         rate = dam.R(t)
     flowVol = dam.V*dam.CV*dt + dam.CI*vol + rate*dt
 
     #add in upstream flow
     dam.V += vol
-    #Don't let dam flow upstream
-    if flowVol < 0.0:
-        print('Water debt')
-        dam.outflow = 0.0
-        return 0.0
+
     #take the appropriate water out of dam
     dam.V -= flowVol
     #handle underflow
     if dam.V < 0.0:
+        print('No water in dam',dam.V)
         out = flowVol + dam.V        
         dam.V = 0.0
         dam.outflow = out
-        return out
+        if out < 0.0:
+            print('Upstream',flowVol)
+            dam.outflow = 0.0
+            return 0.0
+        else:
+            return out
     #handle overflow
     elif dam.V > dam.Vmax:
+        print('Overflow:',dam.V)
         out = dam.V - dam.Vmax
         dam.V = dam.Vmax
         dam.overflow += out
         dam.outflow = out + flowVol
-        return out + flowVol
+                #Don't let dam flow upstream
+        if out+flowVol < 0.0:
+            print('Upstream:',dam.V)
+            dam.outflow = out
+            return out
+        else:
+            return out + flowVol
     else:
+        if flowVol < 0.0:
+            flowVol = 0.0
         dam.outflow = flowVol
         return flowVol
 
@@ -139,36 +150,48 @@ def evaluate_overflow(damTree,dt,nSteps,damList):
     
 tVol = 100000000.0
 tCap = 1000000000000.0
-C1 = 10.0
+C1 = 0.1 # reservoirs per year to let out
 def C2(R):
     return 1.0 - (20.0*C1)/R
 
 #Define dams with initial parameters
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
-kariba = dam(19.2, 25.0, C1, C2(40.0+4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0) 
-tKariba = dam(tVol,tCap, 0.0,0.0,0.0, 40.0) 
 
-victoria = dam(19.2, 25.0, C1, C2(4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0)
-tVictoria = dam(tVol,tCap,0.0,0.0,0.0, 4.4) 
+averageGrid = np.linspace(0,1)
+meanFlow = np.mean(np.array([rf.normkariba(averageGrid),
+                     rf.normvictoria(averageGrid),
+                     rf.norm8(averageGrid),
+                     rf.norm9(averageGrid),
+                     rf.norm10(averageGrid),
+                     rf.norm11(averageGrid),
+                     rf.norm12(averageGrid),
+                     rf.norm13(averageGrid)]),axis=1)
 
-d8 = dam(19.0, 25.0, C1, C2(1.04), 0.0, 0.0)
+
+kariba = dam(19.2, 25.0, C1, C2(np.sum(meanFlow)), 0.0, 0.0) 
+tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.normkariba) 
+
+victoria = dam(19.2, 25.0, C1, C2(np.sum(meanFlow[1:])), 0.0, 0.0)
+tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.normvictoria) 
+
+d8 = dam(19.0, 25.0, C1, C2(meanFlow[2]), 0.0, 0.0)
 tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.norm8) 
 
-d9 = dam(19.0, 25.0, C1, C2(38.0+2.2+3.6+24.0+8.7), 0.0, 0.0)
-tD9 = dam(tVol,tCap,0.0,0.0,0.0,38.0) 
+d9 = dam(19.0, 25.0, C1, C2(np.sum(meanFlow[3:])), 0.0, 0.0)
+tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.norm9) 
 
-d10 = dam(18.0, 25.0, C1, C2(2.2), 0.0, 0.0)
-tD10 = dam(tVol,tCap,0.0,0.0,0.0,2.2) 
+d10 = dam(18.0, 25.0, C1, C2(meanFlow[4]), 0.0, 0.0)
+tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.norm10) 
 
-d11 = dam(19.8, 25.0, C1, C2(3.6), 0.0, 0.0)
-tD11 = dam(tVol,tCap,0.0,0.0,0.0,3.6) 
+d11 = dam(19.8, 25.0, C1, C2(meanFlow[5]), 0.0, 0.0)
+tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.norm11) 
 
-d12 = dam(17.0, 25.0, C1, C2(24.0), 0.0, 0.0)
-tD12 = dam(tVol,tCap,0.0,0.0,0.0,24.0) 
+d12 = dam(17.0, 25.0, C1, C2(meanFlow[6]), 0.0, 0.0)
+tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.norm12) 
 
-d13 = dam(18.0, 25.0, C1, C2(8.7), 0.0, 0.0)
-tD13 = dam(tVol,tCap,0.0,0.0,0.0,8.7) 
+d13 = dam(18.0, 25.0, C1, C2(meanFlow[7]), 0.0, 0.0)
+tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.norm13) 
 
 
 #Define dam topology and provide dam list
