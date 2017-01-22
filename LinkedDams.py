@@ -74,7 +74,8 @@ def extract_overflow(damList):
     return map(lambda x: x.overflow, damList)
     
 def extract_outflow(damList,dt):
-    return map(lambda x: x.outflow, damList)
+    # returns outflow divided by dt to get flow in km^3/year
+    return map(lambda x: x.outflow/dt, damList)
         
 def make_plots(times,vols):
     mpl.pyplot.plot(times,vols)
@@ -100,13 +101,33 @@ def run_simulation(damTree,dt,nSteps,damList):
     times += [t]
     overflows += [extract_overflow(damList)]
     allouts += [extract_outflow(damList,dt)]
+
+    # Make plot of vol of each dam over Time
     mpl.pyplot.figure(0)
+    mpl.pyplot.title('Volume of Each Dam vs Time')
+    mpl.pyplot.ylabel('Volume (km^3)')
+    mpl.pyplot.xlabel('Time (years)')
     make_plots(times,vols)
+    
+    # Make plot of kariba outflow over time
     mpl.pyplot.figure(1)
+    mpl.pyplot.title('Outflow of Kariba Dam vs Time')
+    mpl.pyplot.ylabel('Outflow (km^3/year)')
+    mpl.pyplot.xlabel('Time (years)')
     mpl.pyplot.scatter(times[:-1],outflows)
+    
+    # Make plot of each dam outflow over time
     mpl.pyplot.figure(2)
+    mpl.pyplot.title('Overflow of Each Dam vs Time')
+    mpl.pyplot.ylabel('Volume (km^3)')
+    mpl.pyplot.xlabel('Time (years)')
     make_plots(times,overflows)
+    
+    # Make plot of end outflow per step of system over time
     mpl.pyplot.figure(3)
+    mpl.pyplot.title('Outflow of System at Each Timestep vs Time')
+    mpl.pyplot.ylabel('Outflow (km^3/year)')
+    mpl.pyplot.xlabel('Time (years)')
     make_plots(times,allouts)
     return
 
@@ -170,4 +191,8 @@ def plot_energy():
     print oArray[0][0]
     print oArray[1][0]
     print oArray[0][1]
+
+
+
+
     
