@@ -21,7 +21,7 @@ norm11 = interpolate.interp1d(years,norm11,kind = 'cubic')
 norm12 = interpolate.interp1d(years,norm12,kind = 'cubic')
 norm13 = interpolate.interp1d(years,norm13,kind = 'cubic')
 normvictoria = interpolate.interp1d(years,normvictoria,kind = 'cubic')
-normvictoria = interpolate.interp1d(years,normkariba,kind = 'cubic')
+normkariba = interpolate.interp1d(years,normkariba,kind = 'cubic')
 
 drought8 = interpolate.interp1d(years,drought8,kind = 'cubic')
 drought9 = interpolate.interp1d(years,drought9,kind = 'cubic')
@@ -30,7 +30,7 @@ drought11 = interpolate.interp1d(years,drought11,kind = 'cubic')
 drought12 = interpolate.interp1d(years,drought12,kind = 'cubic')
 drought13 = interpolate.interp1d(years,drought13,kind = 'cubic')
 droughtvictoria = interpolate.interp1d(years,droughtvictoria,kind = 'cubic')
-droughtvictoria = interpolate.interp1d(years,droughtkariba,kind = 'cubic')
+droughtkariba = interpolate.interp1d(years,droughtkariba,kind = 'cubic')
 """
 Print = True
 if Print:
