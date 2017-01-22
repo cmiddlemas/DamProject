@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib as mpl
 import itertools
+import rainfallData as rf
 
 class dam():
     def __init__(self, 
@@ -36,13 +37,20 @@ class dam():
         self.underflow = underflow # amount by which vol is under min_cap
         self.underflow_rate = underflow_rate # rate by which vol is under min_cap
         
-def control(dam, vol, dt):
+def control(dam, vol, t, dt):
     #Determine outflow, assuming no over or underflow
-    flowVol = dam.V*dam.CV*dt + dam.CI*vol + dam.R*dt
+    if type(dam.R) == float:
+        rate = dam.R
+        print('constant rate')
+    else:
+        rate = dam.R(t)
+    flowVol = dam.V*dam.CV*dt + dam.CI*vol + rate*dt
+
     #add in upstream flow
     dam.V += vol
     #Don't let dam flow upstream
     if flowVol < 0.0:
+        print('Water debt')
         dam.outflow = 0.0
         return 0.0
     #take the appropriate water out of dam
@@ -70,15 +78,15 @@ def control(dam, vol, dt):
         dam.outflow = flowVol
         return flowVol
 
-def step(damTree, dt):
+def step(damTree, t, dt):
     #Base Case, resolve flow:
     if len(damTree) == 1:
-        return control(damTree[0], 0.0, dt)
+        return control(damTree[0], 0.0, t, dt)
     #Else Case, recursively resolve flow
     else:
         #Add the flows from the child nodes
-        vol = sum(map(lambda x: step(x, dt), damTree[1:]))
-        return control(damTree[0],vol, dt)
+        vol = sum(map(lambda x: step(x, t, dt), damTree[1:]))
+        return control(damTree[0],vol, t, dt)
                 
 def extract_vol(damList):
     return map(lambda x: x.V, damList)
@@ -118,7 +126,7 @@ def run_simulation(damTree,dt,nSteps,damList):
     for i in range(nSteps):
         vols += [extract_vol(damList)]
         times += [t]
-        outflows += [step(damTree,dt)/dt]
+        outflows += [step(damTree,t,dt)/dt]
         overflows += [extract_overflow(damList)]
         overflow_rates += [extract_overflow_rate(damList)]
         underflows += [extract_underflow(damList)]
@@ -173,7 +181,7 @@ def run_simulation(damTree,dt,nSteps,damList):
 
 def evaluate_overflow(damTree,dt,nSteps,damList):
     for i in range(nSteps):
-        step(damTree, dt)
+        step(damTree, t,dt)
     return damTree[0].overflow
     
 #Specify data here
