@@ -6,12 +6,11 @@ rainfall = pd.read_excel(open("basin_flow_data.xlsx","rb"), sheetname='Sheet1')
 table = rainfall.values
 byRegion = table.transpose()[1:,0:12]
 
-years = 20
-byRegion = matlib.repmat(byRegion,1,years)
+Nyears = 20
 byRegion = byRegion *  31536000 / 1000**3. # Convert from m^3 / s to km^3 / year
-[normal8,drought8,normal9,drought9,normal10,drought10,normal11,drought11,normal12,drought12,normal13,drought13,normal6,drought6,normalvictoria,droughtvictoria,normalkariba,droughtkariba] = byRegion
-byRegion = matlib.repmat(byRegion,1,years)
-years = np.arange(years * 12) / 12.
+byRegion = matlib.repmat(byRegion,1,Nyears) # Generate Nyear time series
+[normal8,drought8,normal9,drought9,normal10,drought10,normal11,drought11,normal12,drought12,normal13,drought13,normal6,drought6,normalvictoria,droughtvictoria,normalkariba,droughtkariba] = byRegion # Read off each region...
+years = np.arange(Nyears * 12) / 12.
 
 normal8 = interpolate.interp1d(years,normal8,kind = 'cubic')
 normal9 = interpolate.interp1d(years,normal9,kind = 'cubic')
@@ -31,7 +30,18 @@ drought13 = interpolate.interp1d(years,drought13,kind = 'cubic')
 droughtvictoria = interpolate.interp1d(years,droughtvictoria,kind = 'cubic')
 droughtkariba = interpolate.interp1d(years,droughtkariba,kind = 'cubic')
 
+flood = np.zeros(years.shape)
+fwhm = 222./365. # 222 day flood
+maxFlow = 16000.* 31536000 / 1000**3 # in km^3 / yr
+offset = 0.51 # wettest time of year in March...
+for n in range(Nyears):
+    flood += maxFlow * np.exp(-4 * np.log(2) * (years - (n + offset))**2 / fwhm )
+    
+floodAny = interpolate.interp1d(years,flood/8.,kind = 'cubic')
+
 def getFlow(region='kariba',condition='normal'):
+    if 'flood' in condition:
+        return floodAny
     return eval(condition + region)
 """
 Print = True
