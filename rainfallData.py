@@ -6,22 +6,21 @@ rainfall = pd.read_excel(open("basin_flow_data.xlsx","rb"), sheetname='Sheet1')
 table = rainfall.values
 byRegion = table.transpose()[1:,0:12]
 
-years = 5
+years = 20
 byRegion = matlib.repmat(byRegion,1,years)
-byRegion = byRegion * 1000**3 / 31536000. # Convert from m^3 / s to km^3 / year
-[norm8,drought8,norm9,drought9,norm10,drought10,norm11,drought11,norm12,drought12,norm13,drought13,norm6,drought6,normvictoria,droughtvictoria,normkariba,droughtkariba] = byRegion
+byRegion = byRegion *  31536000 / 1000**3. # Convert from m^3 / s to km^3 / year
+[normal8,drought8,normal9,drought9,normal10,drought10,normal11,drought11,normal12,drought12,normal13,drought13,normal6,drought6,normalvictoria,droughtvictoria,normalkariba,droughtkariba] = byRegion
 byRegion = matlib.repmat(byRegion,1,years)
 years = np.arange(years * 12) / 12.
 
-
-norm8 = interpolate.interp1d(years,norm8,kind = 'cubic')
-norm9 = interpolate.interp1d(years,norm9,kind = 'cubic')
-norm10 = interpolate.interp1d(years,norm10,kind = 'cubic')
-norm11 = interpolate.interp1d(years,norm11,kind = 'cubic')
-norm12 = interpolate.interp1d(years,norm12,kind = 'cubic')
-norm13 = interpolate.interp1d(years,norm13,kind = 'cubic')
-normvictoria = interpolate.interp1d(years,normvictoria,kind = 'cubic')
-normkariba = interpolate.interp1d(years,normkariba,kind = 'cubic')
+normal8 = interpolate.interp1d(years,normal8,kind = 'cubic')
+normal9 = interpolate.interp1d(years,normal9,kind = 'cubic')
+normal10 = interpolate.interp1d(years,normal10,kind = 'cubic')
+normal11 = interpolate.interp1d(years,normal11,kind = 'cubic')
+normal12 = interpolate.interp1d(years,normal12,kind = 'cubic')
+normal13 = interpolate.interp1d(years,normal13,kind = 'cubic')
+normalvictoria = interpolate.interp1d(years,normalvictoria,kind = 'cubic')
+normalkariba = interpolate.interp1d(years,normalkariba,kind = 'cubic')
 
 drought8 = interpolate.interp1d(years,drought8,kind = 'cubic')
 drought9 = interpolate.interp1d(years,drought9,kind = 'cubic')
@@ -31,20 +30,23 @@ drought12 = interpolate.interp1d(years,drought12,kind = 'cubic')
 drought13 = interpolate.interp1d(years,drought13,kind = 'cubic')
 droughtvictoria = interpolate.interp1d(years,droughtvictoria,kind = 'cubic')
 droughtkariba = interpolate.interp1d(years,droughtkariba,kind = 'cubic')
+
+def getFlow(region='kariba',condition='normal'):
+    return eval(condition + region)
 """
 Print = True
 if Print:
     plt.figure()
-    plt.title('Normal Conditions')
-    plt.plot(years,norm6,label='6')
-    plt.plot(years,norm8,label='8')
-    plt.plot(years,norm9,label='9')
-    plt.plot(years,norm10,label='10')
-    plt.plot(years,norm11,label='11')
-    plt.plot(years,norm12,label='12')
-    plt.plot(years,norm13,label='13')
-    plt.plot(years,normvictoria,label='Victoria')
-    plt.plot(years,normkariba,label='Kariba')
+    plt.title('normalal Conditions')
+    plt.plot(years,normal6,label='6')
+    plt.plot(years,normal8,label='8')
+    plt.plot(years,normal9,label='9')
+    plt.plot(years,normal10,label='10')
+    plt.plot(years,normal11,label='11')
+    plt.plot(years,normal12,label='12')
+    plt.plot(years,normal13,label='13')
+    plt.plot(years,normalvictoria,label='Victoria')
+    plt.plot(years,normalkariba,label='Kariba')
     
 if Print:
     plt.figure()
