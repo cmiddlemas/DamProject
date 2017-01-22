@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib as mpl
 import itertools
+import rainfallData as rf
 
 class dam():
     def __init__(self, V, Vmax, CV, CI, overflow, R, outflow = 0.0):
@@ -21,13 +22,20 @@ class dam():
         self.R = R #for tributaries only, amount of water coming out
         self.outflow = outflow #keeps track of the amount of wate flowing out
         
-def control(dam, vol, dt):
+def control(dam, vol, t, dt):
     #Determine outflow, assuming no over or underflow
-    flowVol = dam.V*dam.CV*dt + dam.CI*vol + dam.R*dt
+    if type(dam.R) == float:
+        rate = dam.R
+        print('constant rate')
+    else:
+        rate = dam.R(t)
+    flowVol = dam.V*dam.CV*dt + dam.CI*vol + rate*dt
+
     #add in upstream flow
     dam.V += vol
     #Don't let dam flow upstream
     if flowVol < 0.0:
+        print('Water debt')
         dam.outflow = 0.0
         return 0.0
     #take the appropriate water out of dam
@@ -49,15 +57,15 @@ def control(dam, vol, dt):
         dam.outflow = flowVol
         return flowVol
 
-def step(damTree, dt):
+def step(damTree, t, dt):
     #Base Case, resolve flow:
     if len(damTree) == 1:
-        return control(damTree[0], 0.0, dt)
+        return control(damTree[0], 0.0, t, dt)
     #Else Case, recursively resolve flow
     else:
         #Add the flows from the child nodes
-        vol = sum(map(lambda x: step(x, dt), damTree[1:]))
-        return control(damTree[0],vol, dt)
+        vol = sum(map(lambda x: step(x, t, dt), damTree[1:]))
+        return control(damTree[0],vol, t, dt)
                 
 def extract_vol(damList):
     return map(lambda x: x.V, damList)
@@ -84,7 +92,7 @@ def run_simulation(damTree,dt,nSteps,damList):
     for i in range(nSteps):
         vols += [extract_vol(damList)]
         times += [t]
-        outflows += [step(damTree,dt)/dt]
+        outflows += [step(damTree,t,dt)/dt]
         overflows += [extract_overflow(damList)]
         allouts += [extract_outflow(damList,dt)]
         t += dt
@@ -124,7 +132,7 @@ def run_simulation(damTree,dt,nSteps,damList):
 
 def evaluate_overflow(damTree,dt,nSteps,damList):
     for i in range(nSteps):
-        step(damTree, dt)
+        step(damTree, t,dt)
     return damTree[0].overflow
     
 #Specify data here
@@ -145,7 +153,7 @@ victoria = dam(19.2, 25.0, C1, C2(4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0)
 tVictoria = dam(tVol,tCap,0.0,0.0,0.0, 4.4) 
 
 d8 = dam(19.0, 25.0, C1, C2(1.04), 0.0, 0.0)
-tD8 = dam(tVol,tCap,0.0,0.0,0.0, 1.04) 
+tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.norm8) 
 
 d9 = dam(19.0, 25.0, C1, C2(38.0+2.2+3.6+24.0+8.7), 0.0, 0.0)
 tD9 = dam(tVol,tCap,0.0,0.0,0.0,38.0) 
