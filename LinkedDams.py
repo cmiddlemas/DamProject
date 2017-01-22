@@ -53,12 +53,12 @@ def control(dam, vol, t, dt):
     dam.V -= flowVol
     #handle when volume of the dam tries to go negative (emptyflow)
     if dam.V < 0.0:
-        print('No water in dam',dam.V)
+        #print('No water in dam',dam.V)
         out = flowVol + dam.V        
         dam.V = 0.0
         dam.outflow = out
         if out < 0.0:
-            print('Upstream',flowVol)
+            #print('Upstream',flowVol)
             dam.outflow = 0.0
             return 0.0
         else:
@@ -68,7 +68,7 @@ def control(dam, vol, t, dt):
         return out
     #handle overflow
     elif dam.V > dam.Vmax:
-        print('Overflow:',dam.V)
+        #print('Overflow:',dam.V)
         out = dam.V - dam.Vmax
         dam.V = dam.Vmax
         dam.overflow += out # update overflow since too much water
@@ -76,7 +76,7 @@ def control(dam, vol, t, dt):
         dam.outflow = out + flowVol
                 #Don't let dam flow upstream
         if out+flowVol < 0.0:
-            print('Upstream:',dam.V)
+            #print('Upstream:',dam.V)
             dam.outflow = out
             return out
         else:
@@ -205,7 +205,7 @@ tCap = 1000000000000.0
 
 C1 = 0.1 # reservoirs per year to let out
 
-dam_max_vol = 25.0
+dam_max_vol = 30.0
 min_cap_percent = 0.50
 dam_min_cap = dam_max_vol*min_cap_percent
 
@@ -229,30 +229,30 @@ meanFlow = np.mean(np.array([rf.getFlow('kariba',condition)(averageGrid),
                     rf.getFlow('13',condition)(averageGrid)]),axis=1)
 
 
+#condition = 'drought'
 
-
-kariba = dam(19.2, dam_max_vol, C1, C2(np.sum(meanFlow)), 0.0, 0.0,dam_min_cap) 
+kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow)), 0.0, 0.0,dam_min_cap) 
 tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
 
-victoria = dam(19.2, dam_max_vol, C1, C2(np.sum(meanFlow[1:])), 0.0, 0.0,dam_min_cap)
+victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:])), 0.0, 0.0,dam_min_cap)
 tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition)) 
 
-d8 = dam(19.0,  dam_max_vol, C1, C2(meanFlow[2]), 0.0, 0.0,dam_min_cap)
+d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2]), 0.0, 0.0,dam_min_cap)
 tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition)) 
 
-d9 = dam(19.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:])), 0.0, 0.0,dam_min_cap)
+d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:])), 0.0, 0.0,dam_min_cap)
 tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition)) 
 
-d10 = dam(18.0,  dam_max_vol, C1, C2(meanFlow[4]), 0.0, 0.0,dam_min_cap)
+d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4]), 0.0, 0.0,dam_min_cap)
 tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition)) 
 
-d11 = dam(19.8,  dam_max_vol, C1, C2(meanFlow[5]), 0.0, 0.0,dam_min_cap)
+d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5]), 0.0, 0.0,dam_min_cap)
 tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition)) 
 
-d12 = dam(17.0,  dam_max_vol, C1, C2(meanFlow[6]), 0.0, 0.0,dam_min_cap)
+d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6]), 0.0, 0.0,dam_min_cap)
 tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition))
 
-d13 = dam(18.0,  dam_max_vol, C1, C2(meanFlow[7]), 0.0, 0.0,dam_min_cap)
+d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7]), 0.0, 0.0,dam_min_cap)
 tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
 
 #Define dam topology and provide dam list
@@ -283,11 +283,89 @@ def plot_energy():
     print oArray[1][0]
     print oArray[0][1]
 
+def get_overflow(L):
+    return map(lambda x: x.overflow, L)    
+    
+def get_underflow(L):
+    return map(lambda x: x.underflow, L)
+    
+def get_outflow(L):
+    return map(lambda x: x.outflow, L)
+
+def get_data_for_energy(function,dt,nSteps,T,L):
+    t = 0.0
+    data = []
+    for i in range(nSteps):
+        step(T,t,dt)
+        t+=dt
+        data += [function(L)]
+    return data
+    
+def energy_overunder(data):
+    return max(data[-1])
+
+def energy_out(atypicalData, normalData):
+    atypical = np.array(atypicalData[:][0])
+    normal = np.array(normalData[:][0])
+    return np.sum(np.square(atypical - normal))
+    
+def initialize_dams(C1,condition):
+    
+    kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow)), 0.0, 0.0,dam_min_cap) 
+    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
+    
+    victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:])), 0.0, 0.0,dam_min_cap)
+    tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition)) 
+    
+    d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2]), 0.0, 0.0,dam_min_cap)
+    tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition)) 
+    
+    d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:])), 0.0, 0.0,dam_min_cap)
+    tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition)) 
+    
+    d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4]), 0.0, 0.0,dam_min_cap)
+    tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition)) 
+    
+    d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5]), 0.0, 0.0,dam_min_cap)
+    tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition)) 
+    
+    d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6]), 0.0, 0.0,dam_min_cap)
+    tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition))
+    
+    d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7]), 0.0, 0.0,dam_min_cap)
+    tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
+    
+    #Define dam topology and provide dam list
+    dTree = [kariba,[victoria,[d8,[tD8]],[d9,[d10,[tD10]],[d11,[tD11]],[d12,[tD12]],[d13,[tD13]],[tD9]],[tVictoria]],[tKariba]]
+    dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
+    
+    return[dTree,dList]
+    
+    
+def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
+    energyArray = np.zeros(nC1)
+    couplingArray = np.zeros(nC1)
+    for i in range(nC1):
+        #Make dams w/ correct coupling constant        
+        [T,L] = initialize_dams(C1start + i*C1step,'normal')
+        #Run a simulation on the dam, and extract necessary data for computing energy
+        data = get_data_for_energy(get_overflow,dt,nSteps,T,L)
+        #Reduce that data using an energy function
+        energyArray[i] = energy_overunder(data)
+        couplingArray[i] = C1start + i*C1step
+    #plot the energy
+    mpl.pyplot.figure(0)
+    mpl.pyplot.title('Energy vs. Coupling')
+    mpl.pyplot.plot(couplingArray,energyArray)
+    return energyArray
+    
+
 if __name__ == '__main__':
     # auto-runs the larger test sim
-    run_simulation(dTree,1/365.0,365,dList)
+    # run_simulation(dTree,1/365.0,365*15,dList)
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,1/365.0,365,testList)
-
+    # auto runs the energy surface sim
+    compute_energy_surface(0.0,0.01,100,1/365.0,365*5)
 
     
