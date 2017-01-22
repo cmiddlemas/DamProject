@@ -56,8 +56,6 @@ def control(dam, vol, dt):
             else:
                 dam.outflow = 0.0
                 return 0.0
-        
-    
 
 def step(damTree, dt):
     #Base Case, resolve flow:
