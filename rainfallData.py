@@ -1,13 +1,17 @@
 import pandas as pd
 import numpy as np
+from numpy import matlib
 from scipy import interpolate
 rainfall = pd.read_excel(open("basin_flow_data.xlsx","rb"), sheetname='Sheet1')
 table = rainfall.values
 byRegion = table.transpose()[1:,0:12]
 
+years = 5
+byRegion = matlib.repmat(byRegion,1,years)
 
 [norm8,drought8,norm9,drought9,norm10,drought10,norm11,drought11,norm12,drought12,norm13,drought13,norm6,drought6,normvictoria,droughtvictoria,normkariba,droughtkariba] = byRegion
-months = np.arange(12)
+byRegion = matlib.repmat(byRegion,1,years)
+months = np.arange(years * 12)
 
 
 norm8 = interpolate.interp1d(months,norm8,kind = 'cubic')
