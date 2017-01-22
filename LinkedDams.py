@@ -19,43 +19,35 @@ class dam():
         self.CI = CI #Constant for inflow term
         self.overflow = overflow #place holder to compute total overflow
         self.R = R #for tributaries only, amount of water coming out
-        self.outflow = outflow
+        self.outflow = outflow #keeps track of the amount of wate flowing out
         
 def control(dam, vol, dt):
     #Determine outflow, assuming no over or underflow
     flowVol = dam.V*dam.CV*dt + dam.CI*vol + dam.R*dt
+    #add in upstream flow
     dam.V += vol
+    #Don't let dam flow upstream
+    if flowVol < 0.0:
+        dam.outflow = 0.0
+        return 0.0
+    #take the appropriate water out of dam
     dam.V -= flowVol
     #handle underflow
     if dam.V < 0.0:
         out = flowVol + dam.V        
         dam.V = 0.0
         dam.outflow = out
-        #don't cause the river to flow backwards
-        if dam.outflow > 0.0:
-            return out
-        else:
-            dam.outflow = 0.0
-            return 0.0
+        return out
+    #handle overflow
+    elif dam.V > dam.Vmax:
+        out = dam.V - dam.Vmax
+        dam.V = dam.Vmax
+        dam.overflow += out
+        dam.outflow = out + flowVol
+        return out + flowVol
     else:
-        #handle overflow
-        if dam.V > dam.Vmax:
-            out = dam.V - dam.Vmax
-            dam.V = dam.Vmax
-            dam.overflow += out
-            dam.outflow = out + flowVol
-            if dam.outflow > 0.0:
-                return out + flowVol
-            else:
-                dam.outflow = 0.0
-                return 0.0
-        else:
-            dam.outflow = flowVol
-            if dam.outflow > 0.0:
-                return flowVol
-            else:
-                dam.outflow = 0.0
-                return 0.0
+        dam.outflow = flowVol
+        return flowVol
 
 def step(damTree, dt):
     #Base Case, resolve flow:
@@ -80,7 +72,6 @@ def make_plots(times,vols):
     mpl.pyplot.plot(times,vols)
     nDams = len(vols[0])
     mpl.pyplot.legend(map(lambda x: str(x), range(nDams)))
-    #mpl.pyplot.axis([0.0,30.0,0.0,12.0])
     
 def run_simulation(damTree,dt,nSteps,damList):
     t = 0.0
@@ -155,14 +146,22 @@ tD13 = dam(tVol,tCap,0.0,0.0,0.0,8.7)
 dTree = [kariba,[victoria,[d8,[tD8]],[d9,[d10,[tD10]],[d11,[tD11]],[d12,[tD12]],[d13,[tD13]],[tD9]],[tVictoria]],[tKariba]]
 dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
 
+
+inflow = dam(10000000.0,1000000000000.0,0.0,0.0,0.0,1.0)
+a = dam(0.0,10.0,0.05,0.1,0.0,0.0)
+b = dam(0.0,10.0,0.05,0.1,0.0,0.0)
+testTree = [b,[a,[inflow]]]
+testList = [a,b]
+
+
 def plot_energy():
     oArray = np.zeros((10,10))
     for i in range(10):
         print i
         for j in range(10):
             inflow = dam(10000000.0,1000000000000.0,0.0,0.0,0.0,1.0)
-            a = dam(0.0,10.0,0.01*i,0.05*j,0.0,0.0)
-            b = dam(0.0,10.0,0.01*i,0.05*j,0.0,0.0)
+            a = dam(0.0,10.0,0.01*i,0.1*j,0.0,0.0)
+            b = dam(0.0,10.0,0.01*i,0.1*j,0.0,0.0)
             testTree = [b,[a,[inflow]]]
             testList = [a,b]
             oArray[i][j] = evaluate_overflow(testTree,0.1,10000,testList)
