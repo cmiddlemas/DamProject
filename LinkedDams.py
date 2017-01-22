@@ -12,14 +12,29 @@ import matplotlib as mpl
 import itertools
 
 class dam():
-    def __init__(self, V, Vmax, CV, CI, overflow, R, outflow = 0.0):
+    def __init__(self, 
+                 V, 
+                 Vmax, 
+                 CV, 
+                 CI, 
+                 overflow,
+                 R, 
+                 min_cap = 0.0,
+                 outflow = 0.0, 
+                 overflow_rate = 0.0,
+                 underflow = 0.0,
+                 underflow_rate = 0.0):
         self.V = V #current volume of water in dam
         self.Vmax = Vmax #maximum carrying capacity of dam
         self.CV = CV #Constant for Volume Proportion term
         self.CI = CI #Constant for inflow term
-        self.overflow = overflow #place holder to compute total overflow
         self.R = R #for tributaries only, amount of water coming out
+        self.min_cap = min_cap # minimum capacity (vol) of the dam that should be filled at all times
         self.outflow = outflow #keeps track of the amount of wate flowing out
+        self.overflow = overflow # amount by which vol exceeds capacity
+        self.overflow_rate = overflow_rate # rate by which vol is exceeding capacity
+        self.underflow = underflow # amount by which vol is under min_cap
+        self.underflow_rate = underflow_rate # rate by which vol is under min_cap
         
 def control(dam, vol, dt):
     #Determine outflow, assuming no over or underflow
@@ -32,20 +47,26 @@ def control(dam, vol, dt):
         return 0.0
     #take the appropriate water out of dam
     dam.V -= flowVol
-    #handle underflow
+    #handle when volume of the dam tries to go negative (emptyflow)
     if dam.V < 0.0:
         out = flowVol + dam.V        
         dam.V = 0.0
         dam.outflow = out
+        dam.underflow += dam.min_cap # update underflow since inadequate water
+        dam.underflow_rate = dam.min_cap 
         return out
     #handle overflow
     elif dam.V > dam.Vmax:
         out = dam.V - dam.Vmax
         dam.V = dam.Vmax
-        dam.overflow += out
+        dam.overflow += out # update overflow since too much water
+        dam.overflow_rate = out
         dam.outflow = out + flowVol
         return out + flowVol
     else:
+        if dam.V < dam.min_cap:
+            dam.underflow += dam.min_cap - dam.V # update underflow since inadequate water
+            dam.underflow_rate = dam.min_cap - dam.V
         dam.outflow = flowVol
         return flowVol
 
@@ -64,6 +85,15 @@ def extract_vol(damList):
     
 def extract_overflow(damList):
     return map(lambda x: x.overflow, damList)
+
+def extract_underflow(damList):
+    return map(lambda x: x.underflow, damList)
+
+def extract_overflow_rate(damList):
+    return map(lambda x: x.overflow_rate, damList)
+    
+def extract_underflow_rate(damList):
+    return map(lambda x: x.underflow_rate, damList)
     
 def extract_outflow(damList,dt):
     # returns outflow divided by dt to get flow in km^3/year
@@ -80,18 +110,30 @@ def run_simulation(damTree,dt,nSteps,damList):
     times = []
     outflows = []
     overflows = []
+    overflow_rates = []
+    underflows = []
+    underflow_rates = []
     allouts = []
+
     for i in range(nSteps):
         vols += [extract_vol(damList)]
         times += [t]
         outflows += [step(damTree,dt)/dt]
         overflows += [extract_overflow(damList)]
+        overflow_rates += [extract_overflow_rate(damList)]
+        underflows += [extract_underflow(damList)]
+        underflow_rates += [extract_underflow_rate(damList)]
         allouts += [extract_outflow(damList,dt)]
         t += dt
+        
     vols += [extract_vol(damList)]
     times += [t]
     overflows += [extract_overflow(damList)]
+    overflow_rates += [extract_overflow_rate(damList)]
+    underflows += [extract_underflow(damList)]
+    underflow_rates += [extract_underflow_rate(damList)]
     allouts += [extract_outflow(damList,dt)]
+        
 
     # Make plot of vol of each dam over Time
     mpl.pyplot.figure(0)
@@ -107,7 +149,7 @@ def run_simulation(damTree,dt,nSteps,damList):
     mpl.pyplot.xlabel('Time (years)')
     mpl.pyplot.scatter(times[:-1],outflows)
     
-    # Make plot of each dam outflow over time
+    # Make plot of each dam overflow over time
     mpl.pyplot.figure(2)
     mpl.pyplot.title('Overflow of Each Dam vs Time')
     mpl.pyplot.ylabel('Volume (km^3)')
@@ -120,6 +162,13 @@ def run_simulation(damTree,dt,nSteps,damList):
     mpl.pyplot.ylabel('Outflow (km^3/year)')
     mpl.pyplot.xlabel('Time (years)')
     make_plots(times,allouts)
+    
+    # Make plot of total underflow over time
+    mpl.pyplot.figure(4)
+    mpl.pyplot.title('Underflow of Each Dam vs Time')
+    mpl.pyplot.ylabel('Volume (km^3)')
+    mpl.pyplot.xlabel('Time (years)')
+    make_plots(times,underflows)
     return
 
 def evaluate_overflow(damTree,dt,nSteps,damList):
@@ -132,34 +181,38 @@ def evaluate_overflow(damTree,dt,nSteps,damList):
 tVol = 100000000.0
 tCap = 1000000000000.0
 C1 = 10.0
+dam_max_vol = 25.0
+min_cap_percent = 0.50
+dam_min_cap = dam_max_vol*min_cap_percent
+
 def C2(R):
     return 1.0 - (20.0*C1)/R
 
 #Define dams with initial parameters
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
-kariba = dam(19.2, 25.0, C1, C2(40.0+4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0) 
+kariba = dam(19.2, dam_max_vol, C1, C2(40.0+4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0, dam_min_cap) 
 tKariba = dam(tVol,tCap, 0.0,0.0,0.0, 40.0) 
 
-victoria = dam(19.2, 25.0, C1, C2(4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0)
+victoria = dam(19.2, dam_max_vol, C1, C2(4.4+38.0+2.2+3.6+24.0+8.7+1.04), 0.0, 0.0, dam_min_cap)
 tVictoria = dam(tVol,tCap,0.0,0.0,0.0, 4.4) 
 
-d8 = dam(19.0, 25.0, C1, C2(1.04), 0.0, 0.0)
+d8 = dam(19.0, dam_max_vol, C1, C2(1.04), 0.0, 0.0, dam_min_cap)
 tD8 = dam(tVol,tCap,0.0,0.0,0.0, 1.04) 
 
-d9 = dam(19.0, 25.0, C1, C2(38.0+2.2+3.6+24.0+8.7), 0.0, 0.0)
+d9 = dam(19.0, dam_max_vol, C1, C2(38.0+2.2+3.6+24.0+8.7), 0.0, 0.0, dam_min_cap)
 tD9 = dam(tVol,tCap,0.0,0.0,0.0,38.0) 
 
-d10 = dam(18.0, 25.0, C1, C2(2.2), 0.0, 0.0)
+d10 = dam(18.0, dam_max_vol, C1, C2(2.2), 0.0, 0.0, dam_min_cap)
 tD10 = dam(tVol,tCap,0.0,0.0,0.0,2.2) 
 
-d11 = dam(19.8, 25.0, C1, C2(3.6), 0.0, 0.0)
+d11 = dam(19.8, dam_max_vol, C1, C2(3.6), 0.0, 0.0, dam_min_cap)
 tD11 = dam(tVol,tCap,0.0,0.0,0.0,3.6) 
 
-d12 = dam(17.0, 25.0, C1, C2(24.0), 0.0, 0.0)
+d12 = dam(17.0, dam_max_vol, C1, C2(24.0), 0.0, 0.0, dam_min_cap)
 tD12 = dam(tVol,tCap,0.0,0.0,0.0,24.0) 
 
-d13 = dam(18.0, 25.0, C1, C2(8.7), 0.0, 0.0)
+d13 = dam(18.0, dam_max_vol, C1, C2(8.7), 0.0, 0.0, dam_min_cap)
 tD13 = dam(tVol,tCap,0.0,0.0,0.0,8.7) 
 
 
@@ -169,8 +222,8 @@ dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
 
 
 inflow = dam(10000000.0,1000000000000.0,0.0,0.0,0.0,1.0)
-a = dam(0.0,10.0,0.05,0.1,0.0,0.0)
-b = dam(0.0,10.0,0.05,0.1,0.0,0.0)
+a = dam(0.0,10.0,0.05,0.1,0.0,0.0,0.05)
+b = dam(0.0,10.0,0.05,0.1,0.0,0.0,0.05)
 testTree = [b,[a,[inflow]]]
 testList = [a,b]
 
@@ -191,7 +244,11 @@ def plot_energy():
     print oArray[1][0]
     print oArray[0][1]
 
-
+if __name__ == '__main__':
+    # auto-runs the larger test sim
+    run_simulation(dTree,1/365.0,365,dList)
+    # auto runs the smaller (2 dam) test sim
+    #run_simulation(testTree,1/365.0,365,testList)
 
 
     
