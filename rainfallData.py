@@ -8,7 +8,7 @@ byRegion = table.transpose()[1:,0:12]
 
 years = 5
 byRegion = matlib.repmat(byRegion,1,years)
-
+byRegion = byRegion * 1000**3 / 31536000. # Convert from m^3 / s to km^3 / year
 [norm8,drought8,norm9,drought9,norm10,drought10,norm11,drought11,norm12,drought12,norm13,drought13,norm6,drought6,normvictoria,droughtvictoria,normkariba,droughtkariba] = byRegion
 byRegion = matlib.repmat(byRegion,1,years)
 years = np.arange(years * 12) / 12.
