@@ -205,8 +205,8 @@ tVol = 100000000.0
 tCap = 1000000000000.0
 
 C1 = 0.1 # reservoirs per year to let out
-
 dam_max_vol = 25.0
+
 min_cap_percent = 0.50
 dam_min_cap = dam_max_vol*min_cap_percent
 
@@ -219,15 +219,16 @@ def C2(R,C1):
 
 condition = 'normal' # 'normal' or 'drought' or 'flood'
 
-averageGrid = np.linspace(4,5)
-meanFlow = np.mean(np.array([rf.getFlow('kariba',condition)(averageGrid),
+averageGrid = np.linspace(4,5) # 'flood' mode takes a few years to reach steady state...
+steadyStateFlows = np.array([rf.getFlow('kariba',condition)(averageGrid),
                     rf.getFlow('victoria',condition)(averageGrid),
                     rf.getFlow('8',condition)(averageGrid),
                     rf.getFlow('9',condition)(averageGrid),
                     rf.getFlow('10',condition)(averageGrid),
                     rf.getFlow('11',condition)(averageGrid),
                     rf.getFlow('12',condition)(averageGrid),
-                    rf.getFlow('13',condition)(averageGrid)]),axis=1)
+                    rf.getFlow('13',condition)(averageGrid)])
+meanFlow = np.mean(steadyStateFlows,axis=1)
 
 """Code for making figures of flow estimates
 
@@ -352,10 +353,23 @@ def initialize_dams(C1,condition):
     tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
     
     #Define dam topology and provide dam list
-    dTree = [kariba,[victoria,[d8,[tD8]],[d9,[d10,[tD10]],[d11,[tD11]],[d12,[tD12]],[d13,[tD13]],[tD9]],[tVictoria]],[tKariba]]
+    dTree = [kariba,
+                [victoria,
+                    [d8,
+                        [tD8]],
+                    [d9,
+                        [d10,
+                            [tD10]],
+                        [d11,[tD11]],
+                        [d12,[tD12]],
+                        [d13,[tD13]],
+                        [tD9]],
+                    [tVictoria]],
+                [tKariba]
+             ]
     dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
     
-    return[dTree,dList]
+    return [dTree,dList]
     
     
 def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
@@ -365,9 +379,13 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
         #Make dams w/ correct coupling constant        
         [T,L] = initialize_dams(C1start + i*C1step,'normal')
         #Run a simulation on the dam, and extract necessary data for computing energy
-        data = get_data_for_energy(get_overflow,dt,nSteps,T,L)
+        normalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
+        #Make dams w/ correct coupling constant        
+        [T,L] = initialize_dams(C1start + i*C1step,'drought')
+        #Run a simulation on the dam, and extract necessary data for computing energy
+        atypicalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Reduce that data using an energy function
-        energyArray[i] = energy_overunder(data)
+        energyArray[i] = energy_out(atypicalData,normalData)
         couplingArray[i] = C1start + i*C1step
     #plot the energy
     mpl.pyplot.figure(0)
@@ -382,6 +400,6 @@ if __name__ == '__main__':
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
-    #testArray = compute_energy_surface(6.0,0.25,10,1/365.0,365*10)
+    testArray = compute_energy_surface(0.0,0.0001,10,1/365.0,365*5)
 
     
