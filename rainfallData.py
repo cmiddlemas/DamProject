@@ -33,16 +33,18 @@ droughtkariba = interpolate.interp1d(years,droughtkariba,kind = 'cubic')
 flood = np.zeros(years.shape)
 fwhm = 222./365. # 222 day flood
 maxFlow = 16000.* 31536000 / 1000**3 # in km^3 / yr
-offset = 0.51 # wettest time of year in March...
-for n in range(Nyears):
-    flood += maxFlow * np.exp(-4 * np.log(2) * (years - (n + offset))**2 / fwhm )
-    
-floodAny = interpolate.interp1d(years,flood/8.,kind = 'cubic')
+offset = 4.51 # wettest time of year in March...flood the fourth year...
 
-def getFlow(region='kariba',condition='normal'):
-    if 'flood' in condition:
-        return floodAny
-    return eval(condition + region)
+# Allow for a flood in Year 1 of the simulation.
+flood = maxFlow * np.exp(-4 * np.log(2) * (years - offset)**2 / fwhm )
+floodYrFour = interpolate.interp1d(years,flood/8.,kind = 'cubic')
+
+def getFlow(region='kariba',condition='normal',flood=False):
+    if flood:
+        totalFlow = interpolate.interp1d(years,eval(condition + region)(years) + floodYrFour(years),kind='cubic')
+    else:
+        totalFlow = eval(condition + region)
+    return totalFlow
 """
 Print = True
 if Print:
