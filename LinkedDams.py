@@ -48,7 +48,8 @@ def control(dam, vol, t, dt):
 
     #add in upstream flow
     dam.V += vol
-
+    if flowVol < 0.0:
+        flowVol = 0.0
     #take the appropriate water out of dam
     dam.V -= flowVol
     #handle when volume of the dam tries to go negative (emptyflow)
@@ -57,12 +58,6 @@ def control(dam, vol, t, dt):
         out = flowVol + dam.V        
         dam.V = 0.0
         dam.outflow = out
-        if out < 0.0:
-            #print('Upstream',flowVol)
-            dam.outflow = 0.0
-            return 0.0
-        else:
-            return out
         dam.underflow += dam.min_cap # update underflow since inadequate water
         dam.underflow_rate = dam.min_cap 
         return out
@@ -74,21 +69,12 @@ def control(dam, vol, t, dt):
         dam.overflow += out # update overflow since too much water
         dam.overflow_rate = out
         dam.outflow = out + flowVol
-                #Don't let dam flow upstream
-        if out+flowVol < 0.0:
-            #print('Upstream:',dam.V)
-            dam.outflow = out
-            return out
-        else:
-            return out + flowVol
+        return out + flowVol
     else:
     #normal operation
-        if flowVol < 0.0:
-            flowVol = 0.0
         if dam.V < dam.min_cap:
             dam.underflow += dam.min_cap - dam.V # update underflow since inadequate water
             dam.underflow_rate = dam.min_cap - dam.V
-
         dam.outflow = flowVol
         return flowVol
 
@@ -328,12 +314,8 @@ def energy_out(atypicalData, normalData):
     normal = np.array(normalData[:][0])
     return np.sum(np.square(atypical - normal))
 
-def normal(sigma = 1.):
-    return np.random.normal(sigma)
-    
 def initialize_dams(C1,condition,flood=flooding,dc = 0):
-    # boilerplate arithmetic for functions
-   
+    # Create a bunch of dams with certain parameters. Do they flood? Do they have DC offset?
     print('C1=',C1)
     print('Uniform DC Offset=',dc)
     kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
@@ -367,6 +349,11 @@ def initialize_dams(C1,condition,flood=flooding,dc = 0):
     d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7], C1), 0.0, 0.0,dam_min_cap)
     tD13 = dam(tVol,tCap,0.0,0.0,0.0,
     rf.getFlow('13',condition, flood = flood,dc = dc))
+
+def energy_normal_out(data):
+    array = np.array(data[:][0])
+    avg = np.mean(array)
+    return np.sum(np.square(data - avg))
     
     #Define dam topology and provide dam list
     dTree = [kariba,
@@ -401,11 +388,12 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
         #Run a simulation on the dam, and extract necessary data for computing energy
         atypicalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Reduce that data using an energy function
-        energyArray[i] = energy_out(atypicalData, normalData)
+        energyArray[i] = energy_normal_out(normalData)
         couplingArray[i] = C1start + i*C1step
     #plot the energy
     mpl.pyplot.figure(0)
     mpl.pyplot.title('Energy vs. Coupling')
+    #mpl.pyplot.axhspan(0.01,0.011,0.2,0.6)
     mpl.pyplot.plot(couplingArray,energyArray)
     return energyArray
     
@@ -416,6 +404,7 @@ if __name__ == '__main__':
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
+
     #testArray = compute_energy_surface(0.0,1.0,10,10.0/365.0,365)
-    pass
+
     
