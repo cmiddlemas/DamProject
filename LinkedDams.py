@@ -204,7 +204,7 @@ def evaluate_overflow(damTree,dt,nSteps,damList):
 tVol = 100000000.0
 tCap = 1000000000000.0
 
-C1 = 5.0 # reservoirs per year to let out
+C1 = 0.1 # reservoirs per year to let out
 dam_max_vol = 25.0
 
 min_cap_percent = 0.50
@@ -246,35 +246,35 @@ plt.xlabel('One year',fontsize=18)
 
 """
 
-#==============================================================================
-# kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow)), 0.0, 0.0,dam_min_cap) 
-# tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
-# 
-# victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:])), 0.0, 0.0,dam_min_cap)
-# tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition)) 
-# 
-# d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2]), 0.0, 0.0,dam_min_cap)
-# tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition)) 
-# 
-# d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:])), 0.0, 0.0,dam_min_cap)
-# tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition)) 
-# 
-# d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4]), 0.0, 0.0,dam_min_cap)
-# tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition)) 
-# 
-# d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5]), 0.0, 0.0,dam_min_cap)
-# tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition)) 
-# 
-# d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6]), 0.0, 0.0,dam_min_cap)
-# tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition))
-# 
-# d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7]), 0.0, 0.0,dam_min_cap)
-# tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
-# 
-# #Define dam topology and provide dam list
-# dTree = [kariba,[victoria,[d8,[tD8]],[d9,[d10,[tD10]],[d11,[tD11]],[d12,[tD12]],[d13,[tD13]],[tD9]],[tVictoria]],[tKariba]]
-# dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
-#==============================================================================
+
+kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow),C1), 0.0, 0.0,dam_min_cap) 
+tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
+ 
+victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:]),C1), 0.0,0.0,dam_min_cap)
+tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition)) 
+ 
+d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2],C1), 0.0, 0.0,dam_min_cap)
+tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition)) 
+ 
+d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]),C1), 0.0, 0.0,dam_min_cap)
+tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition)) 
+ 
+d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4],C1), 0.0, 0.0,dam_min_cap)
+tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition)) 
+ 
+d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5],C1), 0.0, 0.0,dam_min_cap)
+tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition)) 
+ 
+d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6],C1), 0.0, 0.0,dam_min_cap)
+tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition))
+ 
+d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7],C1), 0.0, 0.0,dam_min_cap)
+tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
+ 
+#Define dam topology and provide dam list
+dTree = [kariba,[victoria,[d8,[tD8]],[d9,[d10,[tD10]],[d11,[tD11]],[d12,[tD12]],[d13,[tD13]],[tD9]],[tVictoria]],[tKariba]]
+dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
+
 
 
 inflow = dam(10000000.0,1000000000000.0,0.0,0.0,0.0,1.0)
@@ -396,11 +396,10 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
 
 if __name__ == '__main__':
     # auto-runs the larger test sim
-    #run_simulation(dTree,1/365.0,365*15,dList)
+    run_simulation(dTree,1/365.0,500,dList)
     # auto runs the smaller (2 dam) test sim
-    #run_simulation(testTree,1/365.0,365,testList)
+    #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
-
     testArray = compute_energy_surface(0.0,0.0001,10,1/365.0,365*5)
 
     
