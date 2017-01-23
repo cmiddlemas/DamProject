@@ -121,12 +121,12 @@ def extract_outflow(damList,dt):
     # returns outflow divided by dt to get flow in km^3/year
     return map(lambda x: x.outflow/dt, damList)
         
-def make_plots(times,vols):
+def make_plots(times,vols,names):
     mpl.pyplot.plot(times,vols)
     nDams = len(vols[0])
-    mpl.pyplot.legend(map(lambda x: str(x), range(nDams)))
-    
-def run_simulation(damTree,dt,nSteps,damList):
+    #mpl.pyplot.legend(map(lambda x: str(x), range(nDams)))
+    mpl.pyplot.legend(names)
+def run_simulation(damTree,dt,nSteps,damList,damNames):
     t = 0.0
     vols = []
     times = []
@@ -159,10 +159,10 @@ def run_simulation(damTree,dt,nSteps,damList):
 
     # Make plot of vol of each dam over Time
     mpl.pyplot.figure(0)
-    mpl.pyplot.title('Volume of Each Dam vs Time')
-    mpl.pyplot.ylabel('Volume (km^3)')
-    mpl.pyplot.xlabel('Time (years)')
-    make_plots(times,vols)
+    #mpl.pyplot.title('Volume of Each Dam vs Time')
+    mpl.pyplot.ylabel('Volume (km^3)',fontsize=18)
+    mpl.pyplot.xlabel('Time (years)',fontsize=18)
+    make_plots(times,vols,damNames)
     
     # Make plot of kariba outflow over time
     mpl.pyplot.figure(1)
@@ -176,21 +176,21 @@ def run_simulation(damTree,dt,nSteps,damList):
     mpl.pyplot.title('Overflow of Each Dam vs Time')
     mpl.pyplot.ylabel('Volume (km^3)')
     mpl.pyplot.xlabel('Time (years)')
-    make_plots(times,overflows)
+    make_plots(times,overflows,damNames)
     
     # Make plot of end outflow per step of system over time
     mpl.pyplot.figure(3)
     mpl.pyplot.title('Outflow of System at Each Timestep vs Time')
     mpl.pyplot.ylabel('Outflow (km^3/year)')
     mpl.pyplot.xlabel('Time (years)')
-    make_plots(times,allouts)
+    make_plots(times,allouts,damNames)
     
     # Make plot of total underflow over time
     mpl.pyplot.figure(4)
     mpl.pyplot.title('Underflow of Each Dam vs Time')
     mpl.pyplot.ylabel('Volume (km^3)')
     mpl.pyplot.xlabel('Time (years)')
-    make_plots(times,underflows)
+    make_plots(times,underflows,damNames)
     
     return
 
@@ -368,8 +368,8 @@ def initialize_dams(C1,condition):
                 [tKariba]
              ]
     dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
-    
-    return [dTree,dList]
+    dNames =['kariba','victoria','8','9','10','11','12','13']
+    return [dTree,dList,dNames]
     
     
 def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
