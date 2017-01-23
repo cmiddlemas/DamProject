@@ -216,9 +216,9 @@ def C2(R):
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
 
-condition = 'normal' # 'normal' or 'drought'
+condition = 'flood' # 'normal' or 'drought' or 'flood'
 
-averageGrid = np.linspace(0,1)
+averageGrid = np.linspace(4,5)
 meanFlow = np.mean(np.array([rf.getFlow('kariba',condition)(averageGrid),
                     rf.getFlow('victoria',condition)(averageGrid),
                     rf.getFlow('8',condition)(averageGrid),
@@ -228,8 +228,21 @@ meanFlow = np.mean(np.array([rf.getFlow('kariba',condition)(averageGrid),
                     rf.getFlow('12',condition)(averageGrid),
                     rf.getFlow('13',condition)(averageGrid)]),axis=1)
 
+"""Code for making figures of flow estimates
 
+plt.plot(averageGrid,rf.getFlow('kariba',condition)(averageGrid),label='Kariba')
+plt.plot(averageGrid,rf.getFlow('victoria',condition)(averageGrid),label='Victoria')
+plt.plot(averageGrid,rf.getFlow('8',condition)(averageGrid),label='Subbasin 8')
+plt.plot(averageGrid,rf.getFlow('9',condition)(averageGrid),label='Subbasin 9')
+plt.plot(averageGrid,rf.getFlow('10',condition)(averageGrid),label='Subbasin 10')
+plt.plot(averageGrid,rf.getFlow('11',condition)(averageGrid),label='Subbasin 11')
+plt.plot(averageGrid,rf.getFlow('12',condition)(averageGrid),label='Subbasin 12')
+plt.plot(averageGrid,rf.getFlow('13',condition)(averageGrid),label='Subbasin 13')
+#plt.legend(fontsize=18)
+plt.ylabel('Flow Rate (' + condition + ') km^3 / yr',fontsize=18)
+plt.xlabel('One year',fontsize=18)
 
+"""
 
 kariba = dam(19.2, dam_max_vol, C1, C2(np.sum(meanFlow)), 0.0, 0.0,dam_min_cap) 
 tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
