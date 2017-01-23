@@ -39,13 +39,21 @@ offset = 4.51 # wettest time of year in March...flood the fourth year...
 flood = maxFlow * np.exp(-4 * np.log(2) * (years - offset)**2 / fwhm )
 floodYrFour = interpolate.UnivariateSpline(years,flood/8.,k=3,s=0)
 
-def getFlow(region='kariba',condition='normal',flood=False):
+
+def getFlow(region='kariba',condition='normal',flood=False,dc = 0):
+
     if flood:
-        totalFlow = interpolate.UnivariateSpline(years,eval(condition + region)(years) + floodYrFour(years),k=3,s=0)
+        totalFlow = interpolate.UnivariateSpline(years,eval(condition + region)(years) + floodYrFour(years) + dc,k=3,s=0)
     else:
         totalFlow = eval(condition + region)
     return totalFlow
 """
+import numpy as np
+import matplotlib.pyplot as plt
+t = np.linspace(0,int(Nyears/10),num = 1000)
+plt.plot(t,getFlow(dc = 0)(t))
+plt.plot(t,getFlow(flood=True,dc = 0)(t))
+plt.plot(t,getFlow(flood=True,dc = 50)(t))
 Print = True
 if Print:
     plt.figure()
