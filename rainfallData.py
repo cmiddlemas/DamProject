@@ -45,7 +45,7 @@ def getFlow(region='kariba',condition='normal',flood=False,dc = 0):
     if flood:
         totalFlow = interpolate.UnivariateSpline(years,eval(condition + region)(years) + floodYrFour(years) + dc,k=3,s=0)
     else:
-        totalFlow = eval(condition + region)
+        totalFlow = interpolate.UnivariateSpline(years,eval(condition + region)(years) + dc,k=3,s=0)
     return totalFlow
 """
 import numpy as np
