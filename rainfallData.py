@@ -6,29 +6,29 @@ rainfall = pd.read_excel(open("basin_flow_data.xlsx","rb"), sheetname='Sheet1')
 table = rainfall.values
 byRegion = table.transpose()[1:,0:12]
 
-Nyears = 20
+Nyears = 200
 byRegion = byRegion *  31536000 / 1000**3. # Convert from m^3 / s to km^3 / year
 byRegion = matlib.repmat(byRegion,1,Nyears) # Generate Nyear time series
 [normal8,drought8,normal9,drought9,normal10,drought10,normal11,drought11,normal12,drought12,normal13,drought13,normal6,drought6,normalvictoria,droughtvictoria,normalkariba,droughtkariba] = byRegion # Read off each region...
 years = np.arange(Nyears * 12) / 12.
 
-normal8 = interpolate.interp1d(years,normal8,kind = 'cubic')
-normal9 = interpolate.interp1d(years,normal9,kind = 'cubic')
-normal10 = interpolate.interp1d(years,normal10,kind = 'cubic')
-normal11 = interpolate.interp1d(years,normal11,kind = 'cubic')
-normal12 = interpolate.interp1d(years,normal12,kind = 'cubic')
-normal13 = interpolate.interp1d(years,normal13,kind = 'cubic')
-normalvictoria = interpolate.interp1d(years,normalvictoria,kind = 'cubic')
-normalkariba = interpolate.interp1d(years,normalkariba,kind = 'cubic')
+normal8 = interpolate.UnivariateSpline(years,normal8,k=3,s=0)
+normal9 = interpolate.UnivariateSpline(years,normal9,k=3,s=0)
+normal10 = interpolate.UnivariateSpline(years,normal10,k=3,s=0)
+normal11 = interpolate.UnivariateSpline(years,normal11,k=3,s=0)
+normal12 = interpolate.UnivariateSpline(years,normal12,k=3,s=0)
+normal13 = interpolate.UnivariateSpline(years,normal13,k=3,s=0)
+normalvictoria = interpolate.UnivariateSpline(years,normalvictoria,k=3,s=0)
+normalkariba = interpolate.UnivariateSpline(years,normalkariba,k=3,s=0)
 
-drought8 = interpolate.interp1d(years,drought8,kind = 'cubic')
-drought9 = interpolate.interp1d(years,drought9,kind = 'cubic')
-drought10 = interpolate.interp1d(years,drought10,kind = 'cubic')
-drought11 = interpolate.interp1d(years,drought11,kind = 'cubic')
-drought12 = interpolate.interp1d(years,drought12,kind = 'cubic')
-drought13 = interpolate.interp1d(years,drought13,kind = 'cubic')
-droughtvictoria = interpolate.interp1d(years,droughtvictoria,kind = 'cubic')
-droughtkariba = interpolate.interp1d(years,droughtkariba,kind = 'cubic')
+drought8 = interpolate.UnivariateSpline(years,drought8,k=3,s=0)
+drought9 = interpolate.UnivariateSpline(years,drought9,k=3,s=0)
+drought10 = interpolate.UnivariateSpline(years,drought10,k=3,s=0)
+drought11 = interpolate.UnivariateSpline(years,drought11,k=3,s=0)
+drought12 = interpolate.UnivariateSpline(years,drought12,k=3,s=0)
+drought13 = interpolate.UnivariateSpline(years,drought13,k=3,s=0)
+droughtvictoria = interpolate.UnivariateSpline(years,droughtvictoria,k=3,s=0)
+droughtkariba = interpolate.UnivariateSpline(years,droughtkariba,k=3,s=0)
 
 flood = np.zeros(years.shape)
 fwhm = 222./365. # 222 day flood
@@ -37,11 +37,11 @@ offset = 4.51 # wettest time of year in March...flood the fourth year...
 
 # Allow for a flood in Year 1 of the simulation.
 flood = maxFlow * np.exp(-4 * np.log(2) * (years - offset)**2 / fwhm )
-floodYrFour = interpolate.interp1d(years,flood/8.,kind = 'cubic')
+floodYrFour = interpolate.UnivariateSpline(years,flood/8.,k=3,s=0)
 
 def getFlow(region='kariba',condition='normal',flood=False):
     if flood:
-        totalFlow = interpolate.interp1d(years,eval(condition + region)(years) + floodYrFour(years),kind='cubic')
+        totalFlow = interpolate.UnivariateSpline(years,eval(condition + region)(years) + floodYrFour(years),k=3,s=0)
     else:
         totalFlow = eval(condition + region)
     return totalFlow
