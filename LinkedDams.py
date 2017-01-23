@@ -217,7 +217,7 @@ def C2(R,C1):
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
 
-condition = 'flood' # 'normal' or 'drought' or 'flood'
+condition = 'normal' # 'normal' or 'drought' or 'flood'
 
 averageGrid = np.linspace(4,5)
 meanFlow = np.mean(np.array([rf.getFlow('kariba',condition)(averageGrid),
@@ -325,6 +325,11 @@ def energy_out(atypicalData, normalData):
     normal = np.array(normalData[:][0])
     return np.sum(np.square(atypical - normal))
     
+def energy_normal_out(data):
+    array = np.array(data[:][0])
+    avg = np.mean(array)
+    return np.sum(np.square(data - avg))
+    
 def initialize_dams(C1,condition):
     print C1
     kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
@@ -371,11 +376,12 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
         #Run a simulation on the dam, and extract necessary data for computing energy
         atypicalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Reduce that data using an energy function
-        energyArray[i] = energy_out(atypicalData,normalData)
+        energyArray[i] = energy_normal_out(normalData)
         couplingArray[i] = C1start + i*C1step
     #plot the energy
     mpl.pyplot.figure(0)
     mpl.pyplot.title('Energy vs. Coupling')
+    #mpl.pyplot.axhspan(0.01,0.011,0.2,0.6)
     mpl.pyplot.plot(couplingArray,energyArray)
     return energyArray
     
@@ -386,6 +392,6 @@ if __name__ == '__main__':
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,1/365.0,365,testList)
     # auto runs the energy surface sim
-    testArray = compute_energy_surface(0.0,0.0001,10,1/365.0,365*5)
+    testArray = compute_energy_surface(0.0,0.05,100,10.0/365.0,365)
 
     
