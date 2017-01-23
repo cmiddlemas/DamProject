@@ -385,7 +385,7 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
         #Run a simulation on the dam, and extract necessary data for computing energy
         atypicalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Reduce that data using an energy function
-        energyArray[i] = energy_out(atypicalData,normalData)
+        energyArray[i] = energy_out(atypicalData, normalData)
         couplingArray[i] = C1start + i*C1step
     #plot the energy
     mpl.pyplot.figure(0)
@@ -396,10 +396,10 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
 
 if __name__ == '__main__':
     # auto-runs the larger test sim
-    # run_simulation(dTree,1/365.0,500,dList)
+    #run_simulation(dTree,10.0/365.0,365,dList)
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
-    testArray = compute_energy_surface(0.0,0.0001,10,1/365.0,365*5)
+    testArray = compute_energy_surface(0.0,0.01,10,10.0/365.0,365)
 
     
