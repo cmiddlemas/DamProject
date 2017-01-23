@@ -368,7 +368,7 @@ def initialize_dams(C1,condition):
                 [tKariba]
              ]
     dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
-    dNames =['kariba','victoria','8','9','10','11','12','13']
+    dNames= ['kariba','victoria','8','9','10','11','12','13']
     return [dTree,dList,dNames]
     
     
@@ -377,11 +377,11 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
     couplingArray = np.zeros(nC1)
     for i in range(nC1):
         #Make dams w/ correct coupling constant        
-        [T,L] = initialize_dams(C1start + i*C1step,'normal')
+        [T,L,N] = initialize_dams(C1start + i*C1step,'normal')
         #Run a simulation on the dam, and extract necessary data for computing energy
         normalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Make dams w/ correct coupling constant        
-        [T,L] = initialize_dams(C1start + i*C1step,'drought')
+        [T,L,N] = initialize_dams(C1start + i*C1step,'drought')
         #Run a simulation on the dam, and extract necessary data for computing energy
         atypicalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Reduce that data using an energy function
@@ -396,7 +396,7 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
 
 if __name__ == '__main__':
     # auto-runs the larger test sim
-    run_simulation(dTree,1/365.0,500,dList)
+    # run_simulation(dTree,1/365.0,500,dList)
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
