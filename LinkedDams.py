@@ -327,62 +327,46 @@ def energy_out(atypicalData, normalData):
     atypical = np.array(atypicalData[:][0])
     normal = np.array(normalData[:][0])
     return np.sum(np.square(atypical - normal))
-    
-<<<<<<< HEAD
-def initialize_dams(C1,condition,flood=flooding):
-    print C1
-    kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
-    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition, flood = flood)) 
-    
-    victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
-    tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition,flood=flooding)) 
-    
-    d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2], C1), 0.0, 0.0,dam_min_cap)
-    tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition, flood = flood)) 
-    
-    d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]), C1), 0.0, 0.0,dam_min_cap)
-    tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition, flood = flood)) 
-    
-    d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4], C1), 0.0, 0.0,dam_min_cap)
-    tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition, flood = flood)) 
-    
-    d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5], C1), 0.0, 0.0,dam_min_cap)
-    tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition, flood = flood)) 
-    
-    d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6], C1), 0.0, 0.0,dam_min_cap)
-    tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition, flood = flood))
-    
-    d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7], C1), 0.0, 0.0,dam_min_cap)
-    tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition, flood = flood))
-=======
-flooding = True
 
-def initialize_dams(C1,condition):
-    print C1
-    kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
-    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition, flood = flooding)) 
+def normal(sigma = 1.):
+    return np.random.normal(sigma)
     
-    victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
-    tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition, flood = flooding)) 
+def initialize_dams(C1,condition,flood=flooding,dc = 0):
+    # boilerplate arithmetic for functions
+   
+    print('C1=',C1)
+    print('Uniform DC Offset=',dc)
+    kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
+    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, 
+    rf.getFlow('kariba',condition, flood = flood,dc = dc))
+    
+    victoria = dam(20.0, dam_max_vol,C1,C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
+    tVictoria = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('victoria',condition,flood=flooding)) 
     
     d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2], C1), 0.0, 0.0,dam_min_cap)
-    tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition, flood = flooding)) 
+    tD8 = dam(tVol,tCap,0.0,0.0,0.0, 
+    rf.getFlow('8',condition, flood = flood,dc = dc)) 
     
     d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]), C1), 0.0, 0.0,dam_min_cap)
-    tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition, flood = flooding)) 
+    tD9 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('9',condition, flood = flood,dc = dc)) 
     
     d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4], C1), 0.0, 0.0,dam_min_cap)
-    tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition, flood = flooding)) 
+    tD10 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('10',condition, flood = flood,dc = dc)) 
     
     d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5], C1), 0.0, 0.0,dam_min_cap)
-    tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition, flood = flooding)) 
+    tD11 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('11',condition, flood = flood,dc = dc)) 
     
     d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6], C1), 0.0, 0.0,dam_min_cap)
-    tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition, flood = flooding))
+    tD12 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('12',condition, flood = flood,dc = dc))
     
     d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7], C1), 0.0, 0.0,dam_min_cap)
-    tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition, flood = flooding))
->>>>>>> 95664729d92f4849563c343a9f91c860afd4083c
+    tD13 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('13',condition, flood = flood,dc = dc))
     
     #Define dam topology and provide dam list
     dTree = [kariba,
@@ -428,7 +412,7 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
 
 if __name__ == '__main__':
     # auto-runs the larger test sim
-    run_simulation(dTree,10.0/365.0,365,dList, dNames)
+    #run_simulation(dTree,10.0/365.0,365,dList, dNames)
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
