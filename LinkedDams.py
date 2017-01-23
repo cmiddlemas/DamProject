@@ -217,29 +217,31 @@ def C2(R,C1):
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
 
-condition = 'normal' # 'normal' or 'drought' or 'flood'
+condition = 'normal' # 'normal' or 'drought' 
+flooding = True # True or False
 
-averageGrid = np.linspace(4,5) # 'flood' mode takes a few years to reach steady state...
-steadyStateFlows = np.array([rf.getFlow('kariba',condition)(averageGrid),
-                    rf.getFlow('victoria',condition)(averageGrid),
-                    rf.getFlow('8',condition)(averageGrid),
-                    rf.getFlow('9',condition)(averageGrid),
-                    rf.getFlow('10',condition)(averageGrid),
-                    rf.getFlow('11',condition)(averageGrid),
-                    rf.getFlow('12',condition)(averageGrid),
-                    rf.getFlow('13',condition)(averageGrid)])
+averageGrid = np.linspace(10,11) # takes a few years to reach steady state...also avoid flood when there is one.
+steadyStateFlows = np.array([
+                    rf.getFlow('kariba',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('victoria',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('8',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('9',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('10',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('11',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('12',condition, flood = flooding)(averageGrid),
+                    rf.getFlow('13',condition, flood = flooding)(averageGrid)])
 meanFlow = np.mean(steadyStateFlows,axis=1)
 
 """Code for making figures of flow estimates
 
-plt.plot(averageGrid,rf.getFlow('kariba',condition)(averageGrid),label='Kariba')
-plt.plot(averageGrid,rf.getFlow('victoria',condition)(averageGrid),label='Victoria')
-plt.plot(averageGrid,rf.getFlow('8',condition)(averageGrid),label='Subbasin 8')
-plt.plot(averageGrid,rf.getFlow('9',condition)(averageGrid),label='Subbasin 9')
-plt.plot(averageGrid,rf.getFlow('10',condition)(averageGrid),label='Subbasin 10')
-plt.plot(averageGrid,rf.getFlow('11',condition)(averageGrid),label='Subbasin 11')
-plt.plot(averageGrid,rf.getFlow('12',condition)(averageGrid),label='Subbasin 12')
-plt.plot(averageGrid,rf.getFlow('13',condition)(averageGrid),label='Subbasin 13')
+plt.plot(averageGrid,rf.getFlow('kariba',condition, flood = flooding)(averageGrid),label='Kariba')
+plt.plot(averageGrid,rf.getFlow('victoria',condition, flood = flooding)(averageGrid),label='Victoria')
+plt.plot(averageGrid,rf.getFlow('8',condition, flood = flooding)(averageGrid),label='Subbasin 8')
+plt.plot(averageGrid,rf.getFlow('9',condition, flood = flooding)(averageGrid),label='Subbasin 9')
+plt.plot(averageGrid,rf.getFlow('10',condition, flood = flooding)(averageGrid),label='Subbasin 10')
+plt.plot(averageGrid,rf.getFlow('11',condition, flood = flooding)(averageGrid),label='Subbasin 11')
+plt.plot(averageGrid,rf.getFlow('12',condition, flood = flooding)(averageGrid),label='Subbasin 12')
+plt.plot(averageGrid,rf.getFlow('13',condition, flood = flooding)(averageGrid),label='Subbasin 13')
 #plt.legend(fontsize=18)
 plt.ylabel('Flow Rate (' + condition + ') km^3 / yr',fontsize=18)
 plt.xlabel('One year',fontsize=18)
@@ -248,28 +250,28 @@ plt.xlabel('One year',fontsize=18)
 
 
 kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow),C1), 0.0, 0.0,dam_min_cap) 
-tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
+tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition, flood = flooding)) 
  
 victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:]),C1), 0.0,0.0,dam_min_cap)
-tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition)) 
+tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition, flood = flooding)) 
  
 d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2],C1), 0.0, 0.0,dam_min_cap)
-tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition)) 
+tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition, flood = flooding)) 
  
 d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]),C1), 0.0, 0.0,dam_min_cap)
-tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition)) 
+tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition, flood = flooding)) 
  
 d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4],C1), 0.0, 0.0,dam_min_cap)
-tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition)) 
+tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition, flood = flooding)) 
  
 d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5],C1), 0.0, 0.0,dam_min_cap)
-tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition)) 
+tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition, flood = flooding)) 
  
 d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6],C1), 0.0, 0.0,dam_min_cap)
-tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition))
+tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition, flood = flooding))
  
 d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7],C1), 0.0, 0.0,dam_min_cap)
-tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
+tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition, flood = flooding))
  
 #Define dam topology and provide dam list
 dTree = [kariba,[victoria,[d8,[tD8]],[d9,[d10,[tD10]],[d11,[tD11]],[d12,[tD12]],[d13,[tD13]],[tD9]],[tVictoria]],[tKariba]]
@@ -326,31 +328,31 @@ def energy_out(atypicalData, normalData):
     normal = np.array(normalData[:][0])
     return np.sum(np.square(atypical - normal))
     
-def initialize_dams(C1,condition):
+def initialize_dams(C1,condition,flood=flooding):
     print C1
     kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
-    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition)) 
+    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition, flood = flood)) 
     
     victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
-    tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition)) 
+    tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition,flood=flooding)) 
     
     d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2], C1), 0.0, 0.0,dam_min_cap)
-    tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition)) 
+    tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition, flood = flood)) 
     
     d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]), C1), 0.0, 0.0,dam_min_cap)
-    tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition)) 
+    tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition, flood = flood)) 
     
     d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4], C1), 0.0, 0.0,dam_min_cap)
-    tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition)) 
+    tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition, flood = flood)) 
     
     d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5], C1), 0.0, 0.0,dam_min_cap)
-    tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition)) 
+    tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition, flood = flood)) 
     
     d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6], C1), 0.0, 0.0,dam_min_cap)
-    tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition))
+    tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition, flood = flood))
     
     d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7], C1), 0.0, 0.0,dam_min_cap)
-    tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition))
+    tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition, flood = flood))
     
     #Define dam topology and provide dam list
     dTree = [kariba,
@@ -400,6 +402,6 @@ if __name__ == '__main__':
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
-    testArray = compute_energy_surface(0.0,0.01,10,10.0/365.0,365)
-
+    #testArray = compute_energy_surface(0.0,1.0,10,10.0/365.0,365)
+    pass
     
