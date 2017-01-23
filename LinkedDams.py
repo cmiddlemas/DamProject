@@ -203,10 +203,15 @@ def C2(R,C1):
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
 
+<<<<<<< HEAD
 
 condition = 'normal' # 'normal' or 'drought' 
 flooding = True # True or False
 
+=======
+condition = 'normal' # 'normal' or 'drought' 
+flooding = True # True or False
+>>>>>>> 5cb53b6172131265630c3a209baa562e7a7a2ebe
 
 averageGrid = np.linspace(10,11) # takes a few years to reach steady state...also avoid flood when there is one.
 steadyStateFlows = np.array([
@@ -316,37 +321,46 @@ def energy_out(atypicalData, normalData):
     normal = np.array(normalData[:][0])
     return np.sum(np.square(atypical - normal))
 
+def initialize_dams(C1,condition,flood=flooding,dc = 0):
+    # Create a bunch of dams with certain parameters. Do they flood? Do they have DC offset?
+    print('C1=',C1)
+    print('Uniform DC Offset=',dc)
+    kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
+    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, 
+    rf.getFlow('kariba',condition, flood = flood,dc = dc))
+    
+    victoria = dam(20.0, dam_max_vol,C1,C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
+    tVictoria = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('victoria',condition,flood=flooding)) 
+    
+    d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2], C1), 0.0, 0.0,dam_min_cap)
+    tD8 = dam(tVol,tCap,0.0,0.0,0.0, 
+    rf.getFlow('8',condition, flood = flood,dc = dc)) 
+    
+    d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]), C1), 0.0, 0.0,dam_min_cap)
+    tD9 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('9',condition, flood = flood,dc = dc)) 
+    
+    d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4], C1), 0.0, 0.0,dam_min_cap)
+    tD10 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('10',condition, flood = flood,dc = dc)) 
+    
+    d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5], C1), 0.0, 0.0,dam_min_cap)
+    tD11 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('11',condition, flood = flood,dc = dc)) 
+    
+    d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6], C1), 0.0, 0.0,dam_min_cap)
+    tD12 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('12',condition, flood = flood,dc = dc))
+    
+    d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7], C1), 0.0, 0.0,dam_min_cap)
+    tD13 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('13',condition, flood = flood,dc = dc))
+
 def energy_normal_out(data):
     array = np.array(data[:][0])
     avg = np.mean(array)
     return np.sum(np.square(data - avg))
-    
-
-def initialize_dams(C1,condition,flood=flooding):
-    print C1
-    kariba = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow), C1), 0.0, 0.0,dam_min_cap) 
-    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, rf.getFlow('kariba',condition, flood = flood)) 
-    
-    victoria = dam(20.0, dam_max_vol, C1, C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
-    tVictoria = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('victoria',condition,flood=flooding)) 
-    
-    d8 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[2], C1), 0.0, 0.0,dam_min_cap)
-    tD8 = dam(tVol,tCap,0.0,0.0,0.0, rf.getFlow('8',condition, flood = flood)) 
-    
-    d9 = dam(20.0,  dam_max_vol, C1, C2(np.sum(meanFlow[3:]), C1), 0.0, 0.0,dam_min_cap)
-    tD9 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('9',condition, flood = flood)) 
-    
-    d10 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[4], C1), 0.0, 0.0,dam_min_cap)
-    tD10 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('10',condition, flood = flood)) 
-    
-    d11 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[5], C1), 0.0, 0.0,dam_min_cap)
-    tD11 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('11',condition, flood = flood)) 
-    
-    d12 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[6], C1), 0.0, 0.0,dam_min_cap)
-    tD12 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('12',condition, flood = flood))
-    
-    d13 = dam(20.0,  dam_max_vol, C1, C2(meanFlow[7], C1), 0.0, 0.0,dam_min_cap)
-    tD13 = dam(tVol,tCap,0.0,0.0,0.0,rf.getFlow('13',condition, flood = flood))
     
     #Define dam topology and provide dam list
     dTree = [kariba,
