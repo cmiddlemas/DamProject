@@ -349,9 +349,13 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
         #Make dams w/ correct coupling constant        
         [T,L] = initialize_dams(C1start + i*C1step,'normal')
         #Run a simulation on the dam, and extract necessary data for computing energy
-        data = get_data_for_energy(get_overflow,dt,nSteps,T,L)
+        normalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
+        #Make dams w/ correct coupling constant        
+        [T,L] = initialize_dams(C1start + i*C1step,'drought')
+        #Run a simulation on the dam, and extract necessary data for computing energy
+        atypicalData = get_data_for_energy(get_outflow,dt,nSteps,T,L)
         #Reduce that data using an energy function
-        energyArray[i] = energy_overunder(data)
+        energyArray[i] = energy_out(atypicalData,normalData)
         couplingArray[i] = C1start + i*C1step
     #plot the energy
     mpl.pyplot.figure(0)
