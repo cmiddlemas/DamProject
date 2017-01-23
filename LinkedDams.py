@@ -48,7 +48,8 @@ def control(dam, vol, t, dt):
 
     #add in upstream flow
     dam.V += vol
-
+    if flowVol < 0.0:
+        flowVol = 0.0
     #take the appropriate water out of dam
     dam.V -= flowVol
     #handle when volume of the dam tries to go negative (emptyflow)
@@ -57,12 +58,6 @@ def control(dam, vol, t, dt):
         out = flowVol + dam.V        
         dam.V = 0.0
         dam.outflow = out
-        if out < 0.0:
-            #print('Upstream',flowVol)
-            dam.outflow = 0.0
-            return 0.0
-        else:
-            return out
         dam.underflow += dam.min_cap # update underflow since inadequate water
         dam.underflow_rate = dam.min_cap 
         return out
@@ -74,21 +69,12 @@ def control(dam, vol, t, dt):
         dam.overflow += out # update overflow since too much water
         dam.overflow_rate = out
         dam.outflow = out + flowVol
-                #Don't let dam flow upstream
-        if out+flowVol < 0.0:
-            #print('Upstream:',dam.V)
-            dam.outflow = out
-            return out
-        else:
-            return out + flowVol
+        return out + flowVol
     else:
     #normal operation
-        if flowVol < 0.0:
-            flowVol = 0.0
         if dam.V < dam.min_cap:
             dam.underflow += dam.min_cap - dam.V # update underflow since inadequate water
             dam.underflow_rate = dam.min_cap - dam.V
-
         dam.outflow = flowVol
         return flowVol
 
