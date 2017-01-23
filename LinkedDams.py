@@ -203,15 +203,10 @@ def C2(R,C1):
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
 
-<<<<<<< HEAD
 
 condition = 'normal' # 'normal' or 'drought' 
 flooding = True # True or False
 
-=======
-condition = 'normal' # 'normal' or 'drought' 
-flooding = True # True or False
->>>>>>> 5cb53b6172131265630c3a209baa562e7a7a2ebe
 
 averageGrid = np.linspace(10,11) # takes a few years to reach steady state...also avoid flood when there is one.
 steadyStateFlows = np.array([
@@ -320,6 +315,11 @@ def energy_out(atypicalData, normalData):
     atypical = np.array(atypicalData[:][0])
     normal = np.array(normalData[:][0])
     return np.sum(np.square(atypical - normal))
+    
+def energy_normal_out(data):
+    array = np.array(data[:][0])
+    avg = np.mean(array)
+    return np.sum(np.square(data - avg))
 
 def initialize_dams(C1,condition,flood=flooding,dc = 0):
     # Create a bunch of dams with certain parameters. Do they flood? Do they have DC offset?
@@ -357,10 +357,7 @@ def initialize_dams(C1,condition,flood=flooding,dc = 0):
     tD13 = dam(tVol,tCap,0.0,0.0,0.0,
     rf.getFlow('13',condition, flood = flood,dc = dc))
 
-def energy_normal_out(data):
-    array = np.array(data[:][0])
-    avg = np.mean(array)
-    return np.sum(np.square(data - avg))
+
     
     #Define dam topology and provide dam list
     dTree = [kariba,
