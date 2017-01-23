@@ -203,12 +203,10 @@ def C2(R,C1):
 # We take flow rates by using mean yearly rate in m^3/s from map one
 # Rates are now in km^3/yr
 
-<<<<<<< HEAD
-condition = 'normal' # 'normal' or 'drought' or 'flood'
-=======
+
 condition = 'normal' # 'normal' or 'drought' 
 flooding = True # True or False
->>>>>>> 92e44eb584c18b939efa8fa4e54a9db8d0ecde17
+
 
 averageGrid = np.linspace(10,11) # takes a few years to reach steady state...also avoid flood when there is one.
 steadyStateFlows = np.array([
@@ -395,11 +393,11 @@ def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
 
 if __name__ == '__main__':
     # auto-runs the larger test sim
-    run_simulation(dTree,10.0/365.0,365,dList, dNames)
+    #run_simulation(dTree,10.0/365.0,365,dList, dNames)
     # auto runs the smaller (2 dam) test sim
     #run_simulation(testTree,10/365.0,500,testList)
     # auto runs the energy surface sim
 
-    #testArray = compute_energy_surface(0.0,1.0,10,10.0/365.0,365)
+    testArray = compute_energy_surface(0.0,1.0,10,10.0/365.0,365)
 
     
