@@ -196,8 +196,8 @@ dam_max_vol = 25.0
 min_cap_percent = 0.50
 dam_min_cap = dam_max_vol*min_cap_percent
 
-def C2(R,C1):
-    return 1.0 - (20.0*C1)/R
+def C2(R,C1,vol=20.0):
+    return 1.0 - (vol*C1)/R
 
 #Define dams with initial parameters
 # We take flow rates by using mean yearly rate in m^3/s from map one
@@ -208,7 +208,7 @@ condition = 'normal' # 'normal' or 'drought'
 flooding = False # True or False
 
 
-averageGrid = np.linspace(10,11) # takes a few years to reach steady state...also avoid flood when there is one.
+averageGrid = np.linspace(0,50,num=int(365./10. * 50)) # takes a few years to reach steady state...also avoid flood when there is one.
 steadyStateFlows = np.array([
                     rf.getFlow('kariba',condition, flood = flooding)(averageGrid),
                     rf.getFlow('victoria',condition, flood = flooding)(averageGrid),
@@ -344,6 +344,51 @@ def initialize_dams(C1,condition,flood=False,dc = 0):
     dList = [kariba,victoria,d8,d9,d10,d11,d12,d13]
     dNames= ['kariba','victoria','8','9','10','11','12','13']
     return [dTree,dList,dNames]
+    
+def initialize_current_dams(C1,condition,flood=False,dc = 0):
+    # Create a bunch of dams with certain parameters. Do they flood? Do they have DC offset?
+    print('C1=',C1)
+    print('Uniform DC Offset=',dc)
+    kariba = dam(144., 180., C1, C2(np.sum(meanFlow), C1,vol=0.8*180.), 0.0, 0.0,dam_min_cap) 
+    tKariba = dam(tVol,tCap, 0.0,0.0,0.0, 
+    rf.getFlow('kariba',condition, flood = flood,dc = dc))
+    
+    tVictoria = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('victoria',condition,flood=flood)) 
+    
+    tD8 = dam(tVol,tCap,0.0,0.0,0.0, 
+    rf.getFlow('8',condition, flood = flood,dc = dc)) 
+    
+    tD9 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('9',condition, flood = flood,dc = dc)) 
+
+    tD10 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('10',condition, flood = flood,dc = dc)) 
+    
+    tD11 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('11',condition, flood = flood,dc = dc)) 
+    
+    tD12 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('12',condition, flood = flood,dc = dc))
+    
+    tD13 = dam(tVol,tCap,0.0,0.0,0.0,
+    rf.getFlow('13',condition, flood = flood,dc = dc))
+    
+    #Define dam topology and provide dam list
+    dTree = [kariba,
+                [tD8],
+                [tD9],
+                [tD10],
+                [tD11],
+                [tD12],
+                [tD13],
+                [tVictoria],
+                [tKariba]
+            ]
+    dList = [kariba]
+    dNames= ['kariba']
+    return [dTree,dList,dNames]
+
 
 def initialize_dams_minimal(C1,condition,flood=False,dc = 0):
     victoria = dam(20.0, dam_max_vol,C1,C2(np.sum(meanFlow[1:]), C1), 0.0, 0.0,dam_min_cap)
@@ -358,7 +403,7 @@ def initialize_dams_minimal(C1,condition,flood=False,dc = 0):
     dNames = ['victoria','9']
     return [dTree,dList,dNames]
     
-    
+ 
 def compute_energy_surface(C1start, C1step, nC1, dt, nSteps):
     energyArray = np.zeros(nC1)
     couplingArray = np.zeros(nC1)
@@ -390,21 +435,24 @@ if __name__ == '__main__':
     # auto runs the energy surface sim
     # sensitivity analysis: different uniform DC offsets, no flood.
     if False:
-        [dTree,dList,dNames] = initialize_dams(0.04,'normal',flood=False,dc=0.0)
+        [dTree,dList,dNames] = initialize_dams(0.004,'normal',flood=False,dc=0.0)
         run_simulation(dTree,10./365.,int(365./10. * 150),dList,dNames)
         """
-        mpl.pyplot.title('DC = 0',fontsize=24)
+        mpl.pyplot.title('DC = 0.0',fontsize=24)
         mpl.pyplot.xlim((0,150))
         """     
-        [dTree,dList,dNames] = initialize_dams(0.04,'normal',flood=False,dc=5.0)
+        [dTree,dList,dNames] = initialize_dams(0.004,'normal',flood=False,dc=0.2)
         run_simulation(dTree,10./365.,int(365./10. * 150),dList,dNames)      
         """
-        mpl.pyplot.title('DC = +5.0 km^3 / s',fontsize=24)
+        mpl.pyplot.title('DC = +0.2 km^3 / s',fontsize=24)
         mpl.pyplot.xlim((0,150))
         """       
-        [dTree,dList,dNames] = initialize_dams(0.04,'normal',flood=False,dc=-5.0)
+        [dTree,dList,dNames] = initialize_dams(0.004,'normal',flood=False,dc=-0.2)
         run_simulation(dTree,10./365.,int(365./10. * 150),dList,dNames)        
-              
+        """
+        mpl.pyplot.title('DC = -0.2 km^3 / s',fontsize=24)
+        mpl.pyplot.xlim((0,150))
+        """
     #testArray = compute_energy_surface(0.0,1.0,10,10.0/365.0,365)
     pass
     
